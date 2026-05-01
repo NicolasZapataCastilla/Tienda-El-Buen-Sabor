@@ -1,9 +1,16 @@
 require('dotenv').config();
-const sql = require('mssql/msnodesqlv8');
+const sql = require('mssql');
 
 const config = {
-  connectionString: `Driver={${process.env.DB_DRIVER || 'ODBC Driver 18 for SQL Server'}};Server=${process.env.DB_SERVER};Database=${process.env.DB_DATABASE};Trusted_Connection=yes;TrustServerCertificate=yes;`,
-  driver: 'msnodesqlv8'
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER, // Ej: localhost o una IP/URL
+  database: process.env.DB_DATABASE,
+  options: {
+    encrypt: true, // Requerido para Azure/Render
+    trustServerCertificate: true // Para certificados auto-firmados
+  },
+  port: parseInt(process.env.DB_PORT) || 1433
 };
 
 const poolPromise = new sql.ConnectionPool(config)
