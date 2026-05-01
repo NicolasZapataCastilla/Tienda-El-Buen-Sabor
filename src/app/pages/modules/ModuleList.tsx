@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../api.config';
 import { Search, Filter, Plus, Trash2, MoreVertical, Edit2, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
@@ -25,7 +26,7 @@ export const ModuleList = () => {
     if (currentPath === '/reports') return;
     
     // Fetch from real SQL backend
-    fetch(`http://localhost:3000/api/lists?path=${currentPath}`)
+    fetch(`${API_URL}/api/lists?path=${currentPath}`)
       .then(res => res.json())
       .then(fetchedData => {
         if(Array.isArray(fetchedData)) setData(fetchedData);
@@ -95,7 +96,7 @@ export const ModuleList = () => {
     setExpandedId(id);
     setDetailsData([]);
     try {
-      const res = await fetch(`http://localhost:3000/api/details?path=${currentPath}&id=${id}`);
+      const res = await fetch(`${API_URL}/api/details?path=${currentPath}&id=${id}`);
       const data = await res.json();
       setDetailsData(data);
     } catch (err) {
@@ -114,7 +115,7 @@ export const ModuleList = () => {
   const handleDeactivate = async () => {
     for (const id of Array.from(selectedIds)) {
       try {
-        const res = await fetch('http://localhost:3000/api/deactivate', {
+        const res = await fetch(`${API_URL}/api/deactivate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ path: currentPath, id })
@@ -129,7 +130,7 @@ export const ModuleList = () => {
     }
     
     // Refresh list
-    fetch(`http://localhost:3000/api/lists?path=${currentPath}`)
+    fetch(`${API_URL}/api/lists?path=${currentPath}`)
       .then(res => res.json())
       .then(fetchedData => {
         if(Array.isArray(fetchedData)) setData(fetchedData);
@@ -163,9 +164,9 @@ export const ModuleList = () => {
           </p>
           <div className="bg-[#0a0a0a] border border-slate-800 p-4 rounded-lg w-full max-w-md text-left">
             <p className="text-xs text-slate-500 font-mono mb-1">API Endpoints (JSON)</p>
-            <code className="text-blue-400 text-sm block mb-2">http://localhost:3000/api/lists?path=/sales</code>
-            <code className="text-blue-400 text-sm block mb-2">http://localhost:3000/api/lists?path=/purchases</code>
-            <code className="text-blue-400 text-sm block">http://localhost:3000/api/lists?path=/inventory</code>
+            <code className="text-blue-400 text-sm block mb-2">{API_URL}/api/lists?path=/sales</code>
+            <code className="text-blue-400 text-sm block mb-2">{API_URL}/api/lists?path=/purchases</code>
+            <code className="text-blue-400 text-sm block">{API_URL}/api/lists?path=/inventory</code>
           </div>
           <button className="mt-6 px-6 py-2.5 bg-yellow-600 hover:bg-yellow-500 text-white rounded-xl transition-colors shadow-lg shadow-yellow-600/20 font-medium">
             Generar Token de Acceso

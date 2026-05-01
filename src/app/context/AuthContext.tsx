@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { User, ROLE_ACCESS, ModuleAccess } from '../data/mockData';
+import { API_URL } from '../../api.config';
 
 interface AuthContextType {
   user: User | null;
@@ -16,7 +17,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (username: string, password?: string) => {
     try {
-      const res = await fetch('http://localhost:3000/api/login', {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })

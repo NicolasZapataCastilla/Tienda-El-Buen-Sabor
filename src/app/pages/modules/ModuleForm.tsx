@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../api.config';
 import { ArrowLeft, Save, X, PlusCircle, Trash2 } from 'lucide-react';
 import { API } from '../../data/mockData';
 import { db } from '../../data/db';
@@ -24,7 +25,7 @@ export const ModuleForm = () => {
   });
 
   React.useEffect(() => {
-    fetch('http://localhost:3000/api/catalog')
+    fetch(`${API_URL}/api/catalog`)
       .then(res => res.json())
       .then(data => setCatalogs(data))
       .catch(err => console.error("Error fetching catalog: ", err));
@@ -111,7 +112,7 @@ export const ModuleForm = () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/api/create`, {
+      const res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: basePath, formData, details, user_id: user?.employee_id || 1 })

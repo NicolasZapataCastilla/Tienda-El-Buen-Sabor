@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../api.config';
 import { BarChart3, TrendingUp, Users, DollarSign, Package, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router';
 import * as LucideIcons from 'lucide-react';
@@ -17,7 +18,7 @@ export const Dashboard = () => {
 
   React.useEffect(() => {
     if (user?.role) {
-      fetch(`http://localhost:3000/api/dashboard?role=${user.role}`)
+      fetch(`${API_URL}/api/dashboard?role=${user.role}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
