@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { API_URL } from '../../api.config';
+import { API_URL } from '../../../api.config';
 import { Search, Filter, Plus, Trash2, MoreVertical, Edit2, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 
@@ -16,6 +16,7 @@ export const ModuleList = () => {
 
   const [data, setData] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export const ModuleList = () => {
       
     setSelectedIds(new Set());
     setSearchTerm('');
+    setStatusFilter('ALL');
     setExpandedId(null);
   }, [currentPath]);
 
@@ -52,12 +54,15 @@ export const ModuleList = () => {
   }, [data]);
 
   const filteredData = useMemo(() => {
-    return data.filter(item => 
-      Object.values(item).some(val => 
+    return data.filter(item => {
+      const matchesSearch = Object.values(item).some(val => 
         String(val).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [data, searchTerm]);
+      );
+      const matchesStatus = statusFilter === 'ALL' || 
+        (item.estado && String(item.estado).toUpperCase() === statusFilter);
+      return matchesSearch && matchesStatus;
+    });
+  }, [data, searchTerm, statusFilter]);
 
   const chartData = useMemo(() => {
     if (currentPath !== '/consolidated' || !data.length) return [];
@@ -226,7 +231,7 @@ export const ModuleList = () => {
       {currentPath !== '/consolidated' && (
         <>
           {/* Filters and Search */}
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex gap-4">
+          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <input
@@ -236,6 +241,18 @@ export const ModuleList = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-[#0a0a0a] border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-200 placeholder-slate-500 transition-shadow"
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="text-slate-500" size={18} />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="bg-[#0a0a0a] border border-slate-700 text-slate-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 transition-shadow"
+              >
+                <option value="ALL">Todos los Estados</option>
+                <option value="ACTIVO">Activos</option>
+                <option value="INACTIVO">Inactivos</option>
+              </select>
             </div>
           </div>
 

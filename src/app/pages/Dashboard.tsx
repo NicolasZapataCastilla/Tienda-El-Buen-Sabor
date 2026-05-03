@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { API_URL } from '../api.config';
+import { API_URL } from '../../api.config';
 import { BarChart3, TrendingUp, Users, DollarSign, Package, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router';
 import * as LucideIcons from 'lucide-react';

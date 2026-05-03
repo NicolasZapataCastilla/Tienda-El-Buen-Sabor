@@ -29,7 +29,7 @@ export const ROLE_ACCESS: Record<Role, ModuleAccess[]> = {
     { path: '/customer-types', name: 'Tipos de Cliente', icon: 'users' },
     { path: '/customers', name: 'Clientes', icon: 'user-check' },
     { path: '/sales', name: 'Ventas', icon: 'dollar-sign' },
-    { path: '/inventory', name: 'Inventario', icon: 'clipboard' },
+    { path: '/inventory', name: 'Inventario', icon: 'clipboard', readOnly: true },
     { path: '/movements', name: 'Movimientos', icon: 'activity', readOnly: true },
     { path: '/categories', name: 'Categorías', icon: 'list' },
     { path: '/products', name: 'Productos', icon: 'package' },

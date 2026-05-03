@@ -17,37 +17,44 @@ Este proyecto es un sistema integral de gestión para una bodega local, desarrol
 ## 📁 Estructura del Proyecto
 - `/src`: Código fuente de la aplicación web (React).
 - `/server`: API y lógica de negocio (Node.js).
+- `/Informacion_Usuario`: Manuales y documentación del proyecto.
 - `TiendaElBuenSabor_Maestro.sql`: Script maestro de base de datos.
-- `Manual_Usuario_No_Tecnico.md`: Guía para usuarios finales.
-- `Auditoria_Cumplimiento_Grupal.md`: Documento de cumplimiento académico.
 
 ## ⚙️ Configuración y Ejecución
 
 ### 1. Requisitos
 - Node.js v16+
-- Microsoft SQL Server 2022
+- Microsoft SQL Server 2022 (Express o Developer)
 - Git
 
 ### 2. Instalación Local
-1. Clona el repositorio:
+1. Instala las dependencias necesarias:
    ```bash
-   git clone <url-del-repositorio>
-   ```
-2. Instala las dependencias necesarias:
-   ```bash
+   # En la raíz
    npm install
+   # En la carpeta server
    cd server && npm install
    ```
-3. Configura la base de datos:
-   - Ejecuta el script `TiendaElBuenSabor_Maestro.sql` en SQL Server Management Studio para crear las tablas y datos iniciales.
+2. Configura las variables de entorno:
+   - Crea un archivo `.env` dentro de la carpeta `/server` con el siguiente formato:
+     ```env
+     DB_USER=tu_usuario_sql
+     DB_PASSWORD=tu_password_sql
+     DB_SERVER=localhost
+     DB_DATABASE=master
+     DB_PORT=1433
+     ```
+   - **IMPORTANTE:** Para la configuración inicial de la base de datos, asegúrate de que `DB_DATABASE` sea `master`. Una vez creada la base de datos, puedes cambiarlo a `empresa`.
 
-4. Variables de entorno:
-   - Crea un archivo `.env` en la carpeta `/server` con los datos de tu conexión local (Server, Database, etc.).
+3. Configura la base de datos:
+   - Tienes dos opciones:
+     - **Opción A (Recomendada):** Ejecuta `npm run setup-db` dentro de la carpeta `/server`. Esto creará automáticamente la base de datos `empresa` y todas sus tablas.
+     - **Opción B:** Ejecuta manualmente el script `TiendaElBuenSabor_Maestro.sql` en SQL Server Management Studio (SSMS).
 
 ### 3. Ejecución
-Para iniciar el sistema, abre dos terminales:
-- **Terminal 1 (Backend):** `cd server && node index.js`
-- **Terminal 2 (Frontend):** `npm run dev`
+Para iniciar el sistema:
+1. **Inicia el Backend:** `cd server && npm start`
+2. **Inicia el Frontend:** `npm run dev` (desde la raíz del proyecto)
 
 Accede a la aplicación en `http://localhost:5173` con el usuario `admin` y contraseña `admin123`.
 

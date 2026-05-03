@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
-import { API_URL } from '../../api.config';
+import { API_URL } from '../../../api.config';
 import { ArrowLeft, Save, X, PlusCircle, Trash2 } from 'lucide-react';
 import { API } from '../../data/mockData';
 import { db } from '../../data/db';

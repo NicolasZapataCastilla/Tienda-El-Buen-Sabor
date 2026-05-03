@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Store } from 'lucide-react';
 
 export const Login = () => {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');

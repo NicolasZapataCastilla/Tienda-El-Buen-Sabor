@@ -36,3 +36,6 @@ yarn-error.log*
 *.bak
 *.mdf
 *.ldf
+
+# Local Documentation
+Informacion_Usuario/

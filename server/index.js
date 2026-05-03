@@ -87,7 +87,8 @@ app.get('/api/lists', async (req, res) => {
                  m.nombre_metodo as metodo_pago,
                  'S/. ' + CAST(pg.monto_pago as varchar) as monto_pago,
                  UPPER(pg.estado) as estado,
-                 FORMAT(pg.fecha_pago, 'dd/MM/yyyy HH:mm') as fecha_pago
+                 FORMAT(pg.fecha_pago, 'dd/MM/yyyy HH:mm') as fecha_pago,
+                 ISNULL(FORMAT(pg.fecha_anulacion, 'dd/MM/yyyy HH:mm'), '-') as fecha_anulacion
           FROM Pagos pg
           JOIN Metodo_pago m ON pg.id_metodo_pago = m.id_metodo_pago
           ORDER BY 1 DESC
@@ -300,11 +301,35 @@ app.post('/api/create', async (req, res) => {
                  VALUES (${formData.id_rubro}, '${formData.ruc}', '${formData.razon_social}', '${formData.representante_legal}', '${formData.telefono}', '${formData.direccion}', '${formData.correo}', 'ACTIVO')`;
         break;
       case '/employees':
-        const empCheckCreate = await pool.request().query(`SELECT id_empleado FROM Empleados WHERE dni = '${formData.dni}' OR correo = '${formData.correo}' OR usuario = '${formData.usuario}'`);
-        if (empCheckCreate.recordset.length > 0) return res.status(400).json({ error: "El DNI, correo o usuario ya está registrado" });
-        query = `INSERT INTO Empleados (id_rol, dni, nombres, apellidos, telefono, direccion, correo, usuario, password, estado) 
-                 VALUES (${formData.id_rol}, '${formData.dni}', '${formData.nombres}', '${formData.apellidos}', '${formData.telefono}', '${formData.direccion}', '${formData.correo}', '${formData.usuario}', '${formData.password}', 'ACTIVO')`;
-        break;
+        try {
+          const empCheckCreate = await pool.request()
+            .input('dni', sql.Char(8), formData.dni)
+            .input('correo', sql.VarChar(100), formData.correo)
+            .input('usuario', sql.VarChar(50), formData.usuario)
+            .query(`SELECT id_empleado FROM Empleados WHERE dni = @dni OR correo = @correo OR usuario = @usuario`);
+            
+          if (empCheckCreate.recordset.length > 0) return res.status(400).json({ error: "El DNI, correo o usuario ya está registrado" });
+          
+          query = `INSERT INTO Empleados (id_rol, dni, nombres, apellidos, telefono, direccion, correo, usuario, password, estado) 
+                   VALUES (@id_rol, @dni, @nombres, @apellidos, @telefono, @direccion, @correo, @usuario, @password, 'ACTIVO')`;
+          
+          await pool.request()
+            .input('id_rol', sql.Int, formData.id_rol)
+            .input('dni', sql.Char(8), formData.dni)
+            .input('nombres', sql.VarChar(100), formData.nombres)
+            .input('apellidos', sql.VarChar(100), formData.apellidos)
+            .input('telefono', sql.VarChar(20), formData.telefono)
+            .input('direccion', sql.VarChar(255), formData.direccion)
+            .input('correo', sql.VarChar(100), formData.correo)
+            .input('usuario', sql.VarChar(50), formData.usuario)
+            .input('password', sql.VarChar(255), formData.password)
+            .query(query);
+            
+          return res.json({ success: true });
+        } catch (err) {
+          console.error("Error en /api/create (employees):", err);
+          return res.status(500).json({ error: err.message });
+        }
       case '/products':
         const prodCheck = await pool.request().query(`SELECT id_producto FROM Productos WHERE nombre_producto = '${formData.nombre_producto}' AND id_categoria = ${formData.id_categoria}`);
         if (prodCheck.recordset.length > 0) return res.status(400).json({ error: "Ya existe un producto con el mismo nombre y categoría" });
@@ -395,6 +420,7 @@ app.post('/api/create', async (req, res) => {
             .input('id_proveedor', sql.Int, formData.id_proveedor)
             .input('id_empleado', sql.Int, user_id)
             .input('id_igv', sql.Int, formData.id_igv)
+            .input('id_metodo_pago', sql.Int, formData.id_metodo_pago)
             .input('subtotal', sql.Decimal(10, 2), subtotal)
             .input('monto_igv', sql.Decimal(10, 2), monto_igv)
             .input('total', sql.Decimal(10, 2), total)
@@ -430,15 +456,31 @@ app.post('/api/create', async (req, res) => {
 
 app.post('/api/deactivate', async (req, res) => {
   const { path, id } = req.body;
-  const numericId = parseInt(id.split('-').pop() || id);
   try {
+    const idStr = String(id);
+    const numericId = parseInt(idStr.split('-').pop() || idStr);
     const pool = await poolPromise;
     let table = '';
     let idColumn = '';
     
     switch(path) {
-      case '/products': table = 'Productos'; idColumn = 'id_producto'; 
-        await pool.request().query(`UPDATE Inventario SET estado = 'INACTIVO' WHERE id_producto = ${numericId}`);
+      case '/products': 
+        table = 'Productos'; 
+        idColumn = 'id_producto'; 
+        // Get current stock before deactivating
+        const stockRes = await pool.request().query(`SELECT stock_actual FROM Inventario WHERE id_producto = ${numericId}`);
+        const currentStock = stockRes.recordset.length > 0 ? stockRes.recordset[0].stock_actual : 0;
+        
+        if (currentStock > 0) {
+          // Record adjustment movement for the "frozen" stock
+          await pool.request().query(`
+            INSERT INTO Movimientos_inventario (id_producto, tipo_movimiento, cantidad, stock_anterior, stock_nuevo)
+            VALUES (${numericId}, 'AJUSTE POR DESACTIVACIÓN', ${currentStock}, ${currentStock}, 0);
+            UPDATE Inventario SET stock_actual = 0, estado = 'INACTIVO', fecha_modificacion = GETDATE() WHERE id_producto = ${numericId};
+          `);
+        } else {
+          await pool.request().query(`UPDATE Inventario SET estado = 'INACTIVO' WHERE id_producto = ${numericId}`);
+        }
         break;
       case '/categories': table = 'Categoria'; idColumn = 'id_categoria'; break;
       case '/supplier-categories': table = 'Rubro_proveedor'; idColumn = 'id_rubro'; break;
@@ -454,7 +496,7 @@ app.post('/api/deactivate', async (req, res) => {
         break;
       case '/sales':
         const ventaStatus = await pool.request().query(`SELECT estado FROM Ventas WHERE id_venta = ${numericId}`);
-        if (ventaStatus.recordset.length === 0 || ventaStatus.recordset[0].estado !== 'ACTIVO') {
+        if (ventaStatus.recordset.length === 0 || ventaStatus.recordset[0].estado.toUpperCase() !== 'ACTIVO') {
           return res.status(400).json({ error: "La venta ya está inactiva o no existe" });
         }
         await pool.request()
@@ -462,6 +504,11 @@ app.post('/api/deactivate', async (req, res) => {
           .execute('sp_AnularVenta');
         return res.json({ success: true });
 
+      case '/purchases':
+        const compraStatus = await pool.request().query(`SELECT estado FROM Compras WHERE id_compra = ${numericId}`);
+        if (compraStatus.recordset.length === 0 || compraStatus.recordset[0].estado.toUpperCase() !== 'ACTIVO') {
+          return res.status(400).json({ error: "La compra ya está inactiva o no existe" });
+        }
         await pool.request()
           .input('id_compra', sql.Int, numericId)
           .execute('sp_AnularCompra');
@@ -476,6 +523,7 @@ app.post('/api/deactivate', async (req, res) => {
       res.json({ success: true });
     }
   } catch (err) {
+    console.error("Error en /api/deactivate:", err);
     res.status(500).json({ error: err.message });
   }
 });
