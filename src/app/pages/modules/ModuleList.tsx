@@ -22,30 +22,28 @@ export const ModuleList = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [detailsData, setDetailsData] = useState<any[]>([]);
 
-  // Update data when path changes
-  React.useEffect(() => {
+  const fetchData = React.useCallback(() => {
     if (currentPath === '/reports') return;
-    
-    // Fetch from real SQL backend
     fetch(`${API_URL}/api/lists?path=${currentPath}`)
       .then(res => res.json())
       .then(fetchedData => {
         if(Array.isArray(fetchedData)) setData(fetchedData);
-        else {
-          console.warn("Data is not an array");
-          setData([]);
-        }
       })
-      .catch(err => {
-        console.error("Backend fetch error: ", err);
-        setData([]);
-      });
-      
+      .catch(err => console.error("Backend fetch error: ", err));
+  }, [currentPath]);
+
+  // Update data when path changes or periodically
+  React.useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 10000); // 10s polling
+    
     setSelectedIds(new Set());
     setSearchTerm('');
     setStatusFilter('ALL');
     setExpandedId(null);
-  }, [currentPath]);
+
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   // Dynamic columns based on first item
   const columns = useMemo(() => {

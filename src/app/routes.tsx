@@ -5,9 +5,11 @@ import { Layout } from "./components/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { ModuleList } from "./pages/modules/ModuleList";
 import { ModuleForm } from "./pages/modules/ModuleForm";
+import { SqlLab } from "./pages/modules/SqlLab";
 import { ROLE_ACCESS } from "./data/mockData";
 
-const allPaths = Array.from(new Set(Object.values(ROLE_ACCESS).flatMap(routes => routes.map(r => r.path))));
+const allPaths = Array.from(new Set(Object.values(ROLE_ACCESS).flatMap(routes => routes.map(r => r.path))))
+  .filter(path => path !== '/sql-lab');
 
 const moduleRoutes = allPaths.map(path => {
   const cleanPath = path.replace('/', '');
@@ -35,6 +37,7 @@ export const router = createBrowserRouter([
         element: <Layout />,
         children: [
           { index: true, element: <Dashboard /> },
+          { path: "sql-lab", element: <SqlLab /> },
           ...moduleRoutes,
           { path: "*", element: <Navigate to="/" replace /> }
         ]

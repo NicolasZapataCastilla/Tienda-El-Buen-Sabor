@@ -36,6 +36,7 @@ export const ROLE_ACCESS: Record<Role, ModuleAccess[]> = {
     { path: '/consolidated', name: 'Consolidado', icon: 'bar-chart-2', readOnly: true },
     { path: '/payments', name: 'Historial de Pagos', icon: 'credit-card', readOnly: true },
     { path: '/reports', name: 'Reportes Power BI', icon: 'pie-chart', readOnly: true },
+    { path: '/sql-lab', name: 'Laboratorio SQL', icon: 'code' },
   ],
   PURCHASE_USER: [
     { path: '/supplier-categories', name: 'Rubros de Proveedor', icon: 'tag' },

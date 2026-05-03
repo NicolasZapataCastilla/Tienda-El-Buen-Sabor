@@ -528,5 +528,40 @@ app.post('/api/deactivate', async (req, res) => {
   }
 });
 
+app.post('/api/reset-db', async (req, res) => {
+  try {
+    const pool = await poolPromise;
+    const transaction = new sql.Transaction(pool);
+    await transaction.begin();
+    
+    try {
+      // Orden de borrado para respetar FKs
+      const tablesToClear = [
+        'Pagos', 'Detalle_ventas', 'Detalle_compras', 'Ventas', 'Compras',
+        'Movimientos_inventario', 'Inventario', 'Productos', 'Categoria',
+        'Clientes', 'Tipo_cliente', 'Proveedores', 'Rubro_proveedor'
+      ];
+
+      for (const table of tablesToClear) {
+        await transaction.request().query(`DELETE FROM ${table}`);
+        await transaction.request().query(`DBCC CHECKIDENT ('${table}', RESEED, 0)`);
+      }
+
+      // Empleados (excepto admin)
+      await transaction.request().query(`DELETE FROM Empleados WHERE usuario <> 'admin'`);
+      await transaction.request().query(`DBCC CHECKIDENT ('Empleados', RESEED, 1)`);
+
+      await transaction.commit();
+      res.json({ success: true, message: "Base de datos reseteada correctamente" });
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
+    }
+  } catch (err) {
+    console.error("Error reseteando DB:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

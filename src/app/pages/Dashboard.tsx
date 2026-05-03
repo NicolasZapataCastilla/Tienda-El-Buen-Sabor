@@ -16,13 +16,12 @@ export const Dashboard = () => {
 
   const [metrics, setMetrics] = React.useState<any[]>([]);
 
-  React.useEffect(() => {
+  const fetchMetrics = React.useCallback(() => {
     if (user?.role) {
       fetch(`${API_URL}/api/dashboard?role=${user.role}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
-            // Re-assign icons because JSON only has string names
             const parsedData = data.map(item => ({
               ...item,
               icon: (LucideIcons as any)[item.icon] || LucideIcons.HelpCircle
@@ -33,6 +32,12 @@ export const Dashboard = () => {
         .catch(err => console.error("Error fetching dashboard metrics:", err));
     }
   }, [user]);
+
+  React.useEffect(() => {
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 10000); // 10s polling
+    return () => clearInterval(interval);
+  }, [fetchMetrics]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

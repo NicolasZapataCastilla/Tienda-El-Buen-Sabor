@@ -22,9 +22,8 @@ async function runMaster() {
       let cleanBatch = batch.trim();
       if (!cleanBatch) continue;
       
-      // Remover sentencias USE ya que la conexión ya está establecida en db.js
-      // Pero si la sentencia USE es parte de un bloque más grande, solo la removemos al inicio
-      cleanBatch = cleanBatch.replace(/^USE\s+\[?\w+\]?;?\s*/i, '');
+      // Mantener sentencias USE para permitir cambios de contexto
+      if (!cleanBatch) continue;
       
       if (!cleanBatch) continue;
 

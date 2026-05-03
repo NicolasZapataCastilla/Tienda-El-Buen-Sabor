@@ -233,6 +233,13 @@ CREATE PROCEDURE sp_RegistrarVenta
 AS
 BEGIN
     BEGIN TRY
+        -- Validación de estado activo
+        IF NOT EXISTS (SELECT 1 FROM Clientes WHERE id_cliente = @id_cliente AND estado = 'ACTIVO')
+        BEGIN
+            RAISERROR('El cliente seleccionado no está activo o no existe.', 16, 1);
+            RETURN;
+        END
+
         BEGIN TRANSACTION;
         INSERT INTO Ventas (id_cliente, id_empleado, id_metodo_pago, subtotal, monto_igv, total)
         VALUES (@id_cliente, @id_empleado, @id_metodo_pago, @subtotal, @monto_igv, @total);
@@ -246,7 +253,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH
 END;
@@ -264,6 +271,13 @@ CREATE PROCEDURE sp_RegistrarCompra
 AS
 BEGIN
     BEGIN TRY
+        -- Validación de estado activo
+        IF NOT EXISTS (SELECT 1 FROM Proveedores WHERE id_proveedor = @id_proveedor AND estado = 'ACTIVO')
+        BEGIN
+            RAISERROR('El proveedor seleccionado no está activo o no existe.', 16, 1);
+            RETURN;
+        END
+
         BEGIN TRANSACTION;
         INSERT INTO Compras (id_proveedor, id_empleado, id_igv, subtotal, monto_igv, total)
         VALUES (@id_proveedor, @id_empleado, @id_igv, @subtotal, @monto_igv, @total);
@@ -277,7 +291,7 @@ BEGIN
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION;
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH
 END;
