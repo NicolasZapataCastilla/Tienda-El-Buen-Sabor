@@ -149,36 +149,6 @@ export const ModuleList = () => {
 
   const title = moduleConfig?.name || currentPath.replace('/', '').toUpperCase();
 
-  if (currentPath === '/reports') {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Integración con Power BI</h1>
-          <p className="text-slate-400 text-sm mt-1">Configura y visualiza tus reportes de Power BI.</p>
-        </div>
-        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-8 flex flex-col items-center justify-center text-center shadow-xl">
-          <div className="w-16 h-16 bg-yellow-500/10 text-yellow-500 rounded-2xl flex items-center justify-center mb-4 border border-yellow-500/20">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-          </div>
-          <h2 className="text-xl font-semibold text-slate-200 mb-2">Conectar a Power BI</h2>
-          <p className="text-slate-400 max-w-lg mb-6">
-            Los datos de este sistema están expuestos mediante una API REST para ser consumidos por Power BI. 
-            Con esta URL puedes crear reportes avanzados de Ventas, Compras e Inventario.
-          </p>
-          <div className="bg-[#0a0a0a] border border-slate-800 p-4 rounded-lg w-full max-w-md text-left">
-            <p className="text-xs text-slate-500 font-mono mb-1">API Endpoints (JSON)</p>
-            <code className="text-blue-400 text-sm block mb-2">{API_URL}/api/lists?path=/sales</code>
-            <code className="text-blue-400 text-sm block mb-2">{API_URL}/api/lists?path=/purchases</code>
-            <code className="text-blue-400 text-sm block">{API_URL}/api/lists?path=/inventory</code>
-          </div>
-          <button className="mt-6 px-6 py-2.5 bg-yellow-600 hover:bg-yellow-500 text-white rounded-xl transition-colors shadow-lg shadow-yellow-600/20 font-medium">
-            Generar Token de Acceso
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}

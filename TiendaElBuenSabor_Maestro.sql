@@ -2,7 +2,6 @@
 *******************************************************************************
 PROYECTO: TIENDA EL BUEN SABOR - GESTIÓN INTEGRAL
 CURSO: BASE DE DATOS SQL
-ESTADO: ENTREGABLE FINAL (LIMPIO)
 *******************************************************************************
 */
 

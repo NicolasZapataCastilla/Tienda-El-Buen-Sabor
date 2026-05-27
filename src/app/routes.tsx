@@ -6,10 +6,11 @@ import { Dashboard } from "./pages/Dashboard";
 import { ModuleList } from "./pages/modules/ModuleList";
 import { ModuleForm } from "./pages/modules/ModuleForm";
 import { SqlLab } from "./pages/modules/SqlLab";
+import { PowerBI } from "./pages/modules/PowerBI";
 import { ROLE_ACCESS } from "./data/mockData";
 
 const allPaths = Array.from(new Set(Object.values(ROLE_ACCESS).flatMap(routes => routes.map(r => r.path))))
-  .filter(path => path !== '/sql-lab');
+  .filter(path => path !== '/sql-lab' && path !== '/reports');
 
 const moduleRoutes = allPaths.map(path => {
   const cleanPath = path.replace('/', '');
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Dashboard /> },
           { path: "sql-lab", element: <SqlLab /> },
+          { path: "reports", element: <PowerBI /> },
           ...moduleRoutes,
           { path: "*", element: <Navigate to="/" replace /> }
         ]

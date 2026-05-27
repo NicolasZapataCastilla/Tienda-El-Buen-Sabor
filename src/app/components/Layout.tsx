@@ -51,6 +51,24 @@ export const Layout = () => {
           <p className="px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">
             Operaciones
           </p>
+
+          {/* Botón de Inicio / Dashboard exclusivo para Admin */}
+          {user?.role === 'ADMIN' && (
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) => cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group mb-1",
+                isActive 
+                  ? "bg-blue-600/10 text-blue-400 font-medium border border-blue-500/20" 
+                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-transparent"
+              )}
+            >
+              <LucideIcons.LayoutDashboard size={18} className="group-hover:scale-110 transition-transform duration-200" />
+              <span className="text-sm">Dashboard Principal</span>
+            </NavLink>
+          )}
+
           {accessibleModules.map((module) => {
             const Icon = getIcon(module.icon);
             return (

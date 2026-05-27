@@ -56,148 +56,174 @@ export const SqlLab = () => {
     setIsRunning(false);
   };
 
+  const REAL_DATA = {
+    names: ["Juan", "María", "Carlos", "Ana", "Luis", "Laura", "Pedro", "Elena", "José", "Rosa"],
+    lastnames: ["Pérez", "García", "Rodríguez", "Martínez", "Sánchez", "Flores", "Quispe", "Mamani", "Vargas", "Castillo"],
+    companies: ["Distribuidora San Juan", "Abarrotes El Porvenir", "Limpieza Total S.A.C.", "Bebidas del Sur", "Lácteos La Pradera", "Mundo Fresco", "Hogar y Salud", "Distribuciones Express"],
+    categories: [
+      { name: "Abarrotes", products: ["Arroz Extra 5kg", "Azúcar Rubia 1kg", "Aceite Vegetal 1L", "Fideos Tallarín 500g", "Lentejas 500g"] },
+      { name: "Limpieza", products: ["Detergente 1kg", "Jabón Líquido 500ml", "Desinfectante Pino 1L", "Lejía 1L", "Papel Higiénico 4u"] },
+      { name: "Bebidas", products: ["Agua Mineral 2L", "Gaseosa 3L", "Cerveza 650ml", "Jugo de Naranja 1L", "Bebida Energética"] },
+      { name: "Lácteos", products: ["Leche Evaporada", "Queso Fresco 500g", "Yogur de Fresa 1L", "Mantequilla 200g", "Crema de Leche"] }
+    ],
+    customer_types: ["Cliente Final", "Minorista", "Mayorista", "Corporativo"]
+  };
+
+  const getRandom = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
+
   const runFullCycle = async () => {
     setIsRunning(true);
     setLogs([]);
-    const suffix = Math.floor(Math.random() * 10000);
+    const suffix = Math.floor(Math.random() * 1000);
 
     try {
       // 0. Crear Empleado
-      addLog("0. Crear Empleado", `INSERT INTO Empleados (id_rol, dni, usuario...) VALUES (1, ...)`, "Requisito: Gestión de seguridad y roles.", "pending");
+      const empName = getRandom(REAL_DATA.names);
+      const empLast = getRandom(REAL_DATA.lastnames);
+      addLog("0. Crear Empleado", `INSERT INTO Empleados (id_rol, nombres...) VALUES (1, '${empName} ${empLast}'...)`, "Gestión de seguridad y roles.", "pending");
       let res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           path: "/employees", 
-          formData: { id_rol: 1, dni: `9${suffix}`.padStart(8, '0'), nombres: `User ${suffix}`, apellidos: "Demo", telefono: "900000000", direccion: "Dir Emp", correo: `e${suffix}@test.com`, usuario: `user${suffix}`, password: "123" } 
+          formData: { id_rol: 1, dni: `9${suffix}`.padStart(8, '0'), nombres: empName, apellidos: empLast, telefono: "900000000", direccion: "Calle Principal 123", correo: `e${suffix}@tienda.com`, usuario: `user${suffix}`, password: "123" } 
         })
       });
       if (!res.ok) throw new Error((await res.json()).error);
       updateLastLog("success");
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 600));
 
-      // 1. Crear Rubro
-      addLog("1. Crear Rubro de Proveedor", `INSERT INTO Rubro_proveedor (nombre_rubro) VALUES ('Rubro ${suffix}')`, "Cumple requisito: Inserción en catálogos.", "pending");
+      // 1. Crear Rubros y Categorías
+      const selectedCat = getRandom(REAL_DATA.categories);
+      addLog("1. Crear Rubro de Proveedor", `INSERT INTO Rubro_proveedor (nombre_rubro) VALUES ('${selectedCat.name}')`, "Inserción en catálogos.", "pending");
       res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: "/supplier-categories", formData: { nombre_rubro: `Rubro ${suffix}` } })
+        body: JSON.stringify({ path: "/supplier-categories", formData: { nombre_rubro: selectedCat.name } })
       });
-      if (!res.ok) throw new Error((await res.json()).error);
+      if (!res.ok && !(await res.json()).error.includes("ya existe")) throw new Error("Error creando rubro");
       updateLastLog("success");
-      await new Promise(r => setTimeout(r, 800));
 
-      // 2. Crear Tipo Cliente
-      addLog("2. Crear Tipo de Cliente", `INSERT INTO Tipo_cliente (nombre_tipo) VALUES ('Tipo ${suffix}')`, "Cumple requisito: Inserción en catálogos obligatorios.", "pending");
+      addLog("2. Crear Categoría de Producto", `INSERT INTO Categoria (nombre_categoria) VALUES ('${selectedCat.name}')`, "Sincronización de catálogos.", "pending");
       res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: "/customer-types", formData: { nombre_tipo: `Tipo ${suffix}` } })
+        body: JSON.stringify({ path: "/categories", formData: { nombre_categoria: selectedCat.name } })
       });
-      if (!res.ok) throw new Error((await res.json()).error);
+      if (!res.ok && !(await res.json()).error.includes("ya existe")) throw new Error("Error creando categoría");
       updateLastLog("success");
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise(r => setTimeout(r, 600));
 
-      // 3. Crear Categoría
-      addLog("3. Crear Categoría", `INSERT INTO Categoria (nombre_categoria) VALUES ('Cat ${suffix}')`, "Cumple requisito: Inserción de datos de ejemplo.", "pending");
+      // 3. Crear Tipo Cliente
+      const tcName = getRandom(REAL_DATA.customer_types);
+      addLog("3. Crear Tipo de Cliente", `INSERT INTO Tipo_cliente (nombre_tipo) VALUES ('${tcName}')`, "Configuración de perfiles de cliente.", "pending");
       res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: "/categories", formData: { nombre_categoria: `Cat ${suffix}` } })
+        body: JSON.stringify({ path: "/customer-types", formData: { nombre_tipo: tcName } })
       });
-      if (!res.ok) throw new Error((await res.json()).error);
+      if (!res.ok && !(await res.json()).error.includes("ya existe")) throw new Error("Error creando tipo cliente");
       updateLastLog("success");
-      await new Promise(r => setTimeout(r, 800));
 
+      // Obtener IDs
       const catRes = await fetch(`${API_URL}/api/catalog`);
       const catalog = await catRes.json();
-      const rubroId = catalog.rubros.find((r: any) => r.nombre_rubro === `Rubro ${suffix}`)?.id_rubro;
-      const tipoId = catalog.tipos_cliente.find((t: any) => t.nombre_tipo === `Tipo ${suffix}`)?.id_tipo_cliente;
-      const catId = catalog.categorias.find((c: any) => c.nombre_categoria === `Cat ${suffix}`)?.id_categoria;
-
-      if (!rubroId || !tipoId || !catId) throw new Error("No se pudieron recuperar los IDs de los catálogos creados.");
+      const rubroId = catalog.rubros.find((r: any) => r.nombre_rubro === selectedCat.name)?.id_rubro;
+      const catId = catalog.categorias.find((c: any) => c.nombre_categoria === selectedCat.name)?.id_categoria;
+      const tipoId = catalog.tipos_cliente.find((t: any) => t.nombre_tipo === tcName)?.id_tipo_cliente;
 
       // 4. Crear Proveedor
-      addLog("4. Crear Proveedor", `INSERT INTO Proveedores (id_rubro...) VALUES (${rubroId}, ...)`, "Demuestra relación FK con Rubro_proveedor.", "pending");
+      const provName = getRandom(REAL_DATA.companies);
+      addLog("4. Crear Proveedor", `INSERT INTO Proveedores (razon_social...) VALUES ('${provName}'...)`, "Relación FK con Rubro_proveedor.", "pending");
       res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           path: "/suppliers", 
-          formData: { id_rubro: rubroId, ruc: `20${suffix}12345`, razon_social: `Prov ${suffix}`, representante_legal: "Rep Demo", telefono: "999888777", correo: `p${suffix}@test.com`, direccion: "Dir 123" } 
+          formData: { id_rubro: rubroId, ruc: `20${suffix}77777`, razon_social: `${provName} ${suffix}`, representante_legal: `${getRandom(REAL_DATA.names)} ${getRandom(REAL_DATA.lastnames)}`, telefono: "988777666", correo: `ventas@${suffix}prov.com`, direccion: "Zona Industrial" } 
         })
       });
       if (!res.ok) throw new Error((await res.json()).error);
       updateLastLog("success");
-      await new Promise(r => setTimeout(r, 800));
 
       // 5. Crear Cliente
-      addLog("5. Crear Cliente", `INSERT INTO Clientes (id_tipo_cliente...) VALUES (${tipoId}, ...)`, "Tabla obligatoria con relación a Tipo_cliente.", "pending");
+      const cliName = getRandom(REAL_DATA.names);
+      const cliLast = getRandom(REAL_DATA.lastnames);
+      addLog("5. Crear Cliente", `INSERT INTO Clientes (nombres...) VALUES ('${cliName} ${cliLast}'...)`, "Registro de base de clientes.", "pending");
       res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           path: "/customers", 
-          formData: { id_tipo_cliente: tipoId, dni: `${suffix}`.padStart(8, '0'), nombres: `Cliente ${suffix}`, apellidos: "Demo", telefono: "911222333", correo: `c${suffix}@test.com`, direccion: "Calle Real" } 
+          formData: { id_tipo_cliente: tipoId, dni: `${suffix}`.padStart(8, '1'), nombres: cliName, apellidos: cliLast, telefono: "911222333", correo: `cli${suffix}@email.com`, direccion: "Av. Las Flores 456" } 
         })
       });
       if (!res.ok) throw new Error((await res.json()).error);
       updateLastLog("success");
-      await new Promise(r => setTimeout(r, 800));
 
-      // 6. Crear Producto
-      addLog("6. Crear Producto", `INSERT INTO Productos (id_categoria...) VALUES (${catId}, ...)`, "Tabla obligatoria. Activa trigger/lógica de Inventario.", "pending");
-      const randomCost = Math.floor(Math.random() * 40) + 5;
-      const randomPrice = Math.floor(randomCost * 1.5);
+      // 6. Crear Productos Reales
+      addLog("6. Crear Productos", `INSERT INTO Productos (nombre_producto...) VALUES (...)`, "Carga de catálogo maestro de productos.", "pending");
+      const createdProdIds: number[] = [];
+      for (const pName of selectedCat.products.slice(0, 3)) {
+        const cost = Math.floor(Math.random() * 20) + 5;
+        res = await fetch(`${API_URL}/api/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            path: "/products", 
+            formData: { id_categoria: catId, nombre_producto: pName, precio_compra: cost, precio_venta: Math.round(cost * 1.3) } 
+          })
+        });
+        if (res.ok) {
+           const catalogReload = await (await fetch(`${API_URL}/api/catalog`)).json();
+           const pid = catalogReload.productos.find((p: any) => p.nombre_producto === pName)?.id_producto;
+           if (pid) createdProdIds.push(pid);
+        }
+      }
+      updateLastLog("success");
+      await new Promise(r => setTimeout(r, 600));
+
+      const catalogFinal = await (await fetch(`${API_URL}/api/catalog`)).json();
+      const provId = catalogFinal.proveedores.find((p: any) => p.razon_social.includes(provName))?.id_proveedor;
+      const cliId = catalogFinal.clientes.find((c: any) => c.dni === `${suffix}`.padStart(8, '1'))?.id_cliente;
+
+      // 7. Compra Multi-Producto
+      addLog("7. Registrar Compra (Multi-item)", `EXEC sp_RegistrarCompra @id_proveedor=${provId}...`, "Simulación de abastecimiento coherente con el rubro.", "pending");
+      const purchaseDetails = createdProdIds.map(pid => ({
+        id_producto: pid,
+        cantidad: Math.floor(Math.random() * 20) + 10,
+        costo_unitario: catalogFinal.productos.find((p: any) => p.id_producto === pid).precio_compra
+      }));
       res = await fetch(`${API_URL}/api/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          path: "/products", 
-          formData: { id_categoria: catId, nombre_producto: `Prod ${suffix}`, precio_compra: randomCost, precio_venta: randomPrice } 
+          path: "/purchases", user_id: 1,
+          formData: { id_proveedor: provId, id_metodo_pago: 1, id_igv: 1 },
+          details: purchaseDetails
         })
       });
       if (!res.ok) throw new Error((await res.json()).error);
       updateLastLog("success");
-      await new Promise(r => setTimeout(r, 800));
 
-      const catRes2 = await fetch(`${API_URL}/api/catalog`);
-      const catalog2 = await catRes2.json();
-      const provId = catalog2.proveedores.find((p: any) => p.razon_social === `Prov ${suffix}`)?.id_proveedor;
-      const cliId = catalog2.clientes.find((c: any) => c.dni === `${suffix}`.padStart(8, '0'))?.id_cliente;
-      const prodId = catalog2.productos.find((p: any) => p.nombre_producto === `Prod ${suffix}`)?.id_producto;
-
-      for (let i = 1; i <= 2; i++) {
-        const qtyPurchase = Math.floor(Math.random() * 15) + 5;
-        addLog(`7.${i} Registrar Compra #${i}`, `EXEC sp_RegistrarCompra @id_proveedor=${provId}, @cantidad=${qtyPurchase}...`, "Simulación de abastecimiento múltiple.", "pending");
-        res = await fetch(`${API_URL}/api/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            path: "/purchases", user_id: 1,
-            formData: { id_proveedor: provId, id_metodo_pago: 1, id_igv: 1 },
-            details: [{ id_producto: prodId, cantidad: qtyPurchase, costo_unitario: randomCost }]
-          })
-        });
-        if (!res.ok) throw new Error((await res.json()).error);
-        updateLastLog("success");
-        await new Promise(r => setTimeout(r, 800));
-
-        const qtySale = Math.floor(Math.random() * 4) + 1;
-        addLog(`8.${i} Registrar Venta #${i}`, `EXEC sp_RegistrarVenta @id_cliente=${cliId}, @cantidad=${qtySale}...`, "Simulación de generación de ingresos.", "pending");
-        res = await fetch(`${API_URL}/api/create`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            path: "/sales", user_id: 1,
-            formData: { id_cliente: cliId, id_metodo_pago: 1, id_igv: 1 },
-            details: [{ id_producto: prodId, cantidad: qtySale, precio_unitario: randomPrice }]
-          })
-        });
-        if (!res.ok) throw new Error((await res.json()).error);
-        updateLastLog("success");
-        await new Promise(r => setTimeout(r, 800));
-      }
+      // 8. Venta Multi-Producto
+      addLog("8. Registrar Venta (Multi-item)", `EXEC sp_RegistrarVenta @id_cliente=${cliId}...`, "Simulación de flujo de caja y salida de stock.", "pending");
+      const saleDetails = createdProdIds.slice(0, 2).map(pid => ({
+        id_producto: pid,
+        cantidad: Math.floor(Math.random() * 5) + 1,
+        precio_unitario: catalogFinal.productos.find((p: any) => p.id_producto === pid).precio_venta
+      }));
+      res = await fetch(`${API_URL}/api/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          path: "/sales", user_id: 1,
+          formData: { id_cliente: cliId, id_metodo_pago: 1, id_igv: 1 },
+          details: saleDetails
+        })
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      updateLastLog("success");
 
     } catch (err: any) {
       updateLastLog("error", err.message);
@@ -208,25 +234,32 @@ export const SqlLab = () => {
   const runQuickSales = async () => {
     setIsRunning(true);
     setLogs([]);
-    addLog("Iniciando Simulación Rápida", "FETCH /api/catalog...", "Obteniendo datos para simular actividad.", "pending");
+    addLog("Iniciando Ventas Reales", "FETCH /api/catalog...", "Generando actividad con datos existentes.", "pending");
     try {
       const catRes = await fetch(`${API_URL}/api/catalog`);
       const catalog = await catRes.json();
-      if (!catalog.clientes.length || !catalog.productos.length) throw new Error("Se necesitan clientes y productos previos.");
+      if (!catalog.clientes.length || !catalog.productos.length) throw new Error("Se requieren datos previos.");
       updateLastLog("success");
 
-      for (let i = 1; i <= 5; i++) {
-        const randomCli = catalog.clientes[Math.floor(Math.random() * catalog.clientes.length)];
-        const randomProd = catalog.productos[Math.floor(Math.random() * catalog.productos.length)];
-        const qty = Math.floor(Math.random() * 3) + 1;
-        addLog(`Venta Rápida #${i}`, `EXEC sp_RegistrarVenta...`, "Generando tráfico aleatorio.", "pending");
+      for (let i = 1; i <= 3; i++) {
+        const randomCli = getRandom(catalog.clientes);
+        const numItems = Math.floor(Math.random() * 3) + 1;
+        const selectedProducts = [...catalog.productos].sort(() => 0.5 - Math.random()).slice(0, numItems);
+        
+        addLog(`Venta #${i} (${numItems} productos)`, `EXEC sp_RegistrarVenta...`, `Venta para ${randomCli.nombres}`, "pending");
+        const details = selectedProducts.map(p => ({
+          id_producto: p.id_producto,
+          cantidad: Math.floor(Math.random() * 3) + 1,
+          precio_unitario: p.precio_venta
+        }));
+
         const res = await fetch(`${API_URL}/api/create`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             path: "/sales", user_id: 1,
             formData: { id_cliente: randomCli.id_cliente, id_metodo_pago: 1, id_igv: 1 },
-            details: [{ id_producto: randomProd.id_producto, cantidad: qty, precio_unitario: randomProd.precio_venta }]
+            details: details
           })
         });
         if (res.ok) updateLastLog("success");

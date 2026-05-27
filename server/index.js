@@ -222,6 +222,17 @@ app.get('/api/dashboard', async (req, res) => {
 });
 
 
+app.get('/api/alertas-stock', async (req, res) => {
+  try {
+    const pool = await poolPromise;
+    const result = await pool.request().execute('sp_AlertasStock');
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("Alertas stock error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -537,8 +548,8 @@ app.post('/api/reset-db', async (req, res) => {
     try {
       // Orden de borrado para respetar FKs
       const tablesToClear = [
-        'Pagos', 'Detalle_ventas', 'Detalle_compras', 'Ventas', 'Compras',
-        'Movimientos_inventario', 'Inventario', 'Productos', 'Categoria',
+        'Movimientos_inventario', 'Pagos', 'Detalle_ventas', 'Detalle_compras', 
+        'Ventas', 'Compras', 'Inventario', 'Productos', 'Categoria',
         'Clientes', 'Tipo_cliente', 'Proveedores', 'Rubro_proveedor'
       ];
 

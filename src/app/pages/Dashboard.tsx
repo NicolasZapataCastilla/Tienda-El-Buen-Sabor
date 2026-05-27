@@ -15,6 +15,7 @@ export const Dashboard = () => {
   const { user, accessibleModules } = useAuth();
 
   const [metrics, setMetrics] = React.useState<any[]>([]);
+  const [alerts, setAlerts] = React.useState<any[]>([]);
 
   const fetchMetrics = React.useCallback(() => {
     if (user?.role) {
@@ -30,6 +31,13 @@ export const Dashboard = () => {
           }
         })
         .catch(err => console.error("Error fetching dashboard metrics:", err));
+        
+      if (user.role === 'ADMIN' || user.role === 'INVENTORY_USER') {
+        fetch(`${API_URL}/api/alertas-stock`)
+          .then(res => res.json())
+          .then(data => setAlerts(data || []))
+          .catch(err => console.error("Error fetching alerts:", err));
+      }
     }
   }, [user]);
 
@@ -70,6 +78,43 @@ export const Dashboard = () => {
           );
         })}
       </div>
+
+      {/* Alertas de Stock */}
+      {alerts.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-red-400 flex items-center gap-2 mb-4">
+            <LucideIcons.AlertTriangle size={24} /> Alertas de Inventario
+          </h2>
+          <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <table className="w-full text-left text-sm text-slate-300">
+              <thead className="bg-slate-800/50 text-slate-400">
+                <tr>
+                  <th className="p-4 font-medium">Producto</th>
+                  <th className="p-4 font-medium">Stock Actual</th>
+                  <th className="p-4 font-medium">Mínimo</th>
+                  <th className="p-4 font-medium">Máximo</th>
+                  <th className="p-4 font-medium">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {alerts.map((alert, i) => (
+                  <tr key={i} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="p-4 font-medium text-slate-200">{alert.nombre_producto}</td>
+                    <td className="p-4 font-bold">{alert.stock_actual}</td>
+                    <td className="p-4 text-slate-500">{alert.stock_minimo}</td>
+                    <td className="p-4 text-slate-500">{alert.stock_maximo}</td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${alert.estado_inventario.includes('CRÍTICO') ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                        {alert.estado_inventario}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Quick Access */}
       <div>
