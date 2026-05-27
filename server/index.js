@@ -407,6 +407,7 @@ app.post('/api/create', async (req, res) => {
             .input('id_cliente', sql.Int, formData.id_cliente)
             .input('id_empleado', sql.Int, user_id)
             .input('id_metodo_pago', sql.Int, formData.id_metodo_pago)
+            .input('id_igv', sql.Int, formData.id_igv)
             .input('subtotal', sql.Decimal(10, 2), subtotal)
             .input('monto_igv', sql.Decimal(10, 2), monto_igv)
             .input('total', sql.Decimal(10, 2), total)

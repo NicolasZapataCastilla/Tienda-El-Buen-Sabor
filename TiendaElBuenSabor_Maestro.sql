@@ -135,6 +135,7 @@ CREATE TABLE Ventas (
     id_cliente INT FOREIGN KEY REFERENCES Clientes(id_cliente),
     id_empleado INT FOREIGN KEY REFERENCES Empleados(id_empleado),
     id_metodo_pago INT FOREIGN KEY REFERENCES Metodo_pago(id_metodo_pago),
+    id_igv INT FOREIGN KEY REFERENCES Igv(id_igv),
     subtotal DECIMAL(10,2),
     monto_igv DECIMAL(10,2),
     total DECIMAL(10,2),
@@ -226,6 +227,7 @@ CREATE PROCEDURE sp_RegistrarVenta
     @id_cliente INT,
     @id_empleado INT,
     @id_metodo_pago INT,
+    @id_igv INT,
     @subtotal DECIMAL(10,2),
     @monto_igv DECIMAL(10,2),
     @total DECIMAL(10,2)
@@ -240,8 +242,8 @@ BEGIN
         END
 
         BEGIN TRANSACTION;
-        INSERT INTO Ventas (id_cliente, id_empleado, id_metodo_pago, subtotal, monto_igv, total)
-        VALUES (@id_cliente, @id_empleado, @id_metodo_pago, @subtotal, @monto_igv, @total);
+        INSERT INTO Ventas (id_cliente, id_empleado, id_metodo_pago, id_igv, subtotal, monto_igv, total)
+        VALUES (@id_cliente, @id_empleado, @id_metodo_pago, @id_igv, @subtotal, @monto_igv, @total);
         
         DECLARE @newId INT = SCOPE_IDENTITY();
         
