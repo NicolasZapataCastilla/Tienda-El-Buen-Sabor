@@ -1,0 +1,144 @@
+================================================================================
+GUIA AUTOMATIZADA DE INSTALACION Y PUESTA EN MARCHA (PARA AGENTE DE IA)
+PROYECTO: Tienda El Buen Sabor - Sistema de Gestion (ERP)
+REPOSITORIO: https://github.com/NicolasZapataCastilla/Tienda-El-Buen-Sabor.git
+================================================================================
+
+[OBJETIVO PARA LA IA ASISTENTE]
+Este documento contiene las instrucciones precisas para configurar y ejecutar
+este proyecto desde cero en una computadora con Windows limpia (sin software previo).
+Tu rol como IA es ejecutar o guiar la instalacion de los prerequisitos,
+la configuracion de la base de datos, las dependencias y el inicio de los servidores.
+
+--------------------------------------------------------------------------------
+FASE 1: VERIFICACION E INSTALACION DE PRERREQUISITOS (EN POWERSHELL COMO ADMIN)
+--------------------------------------------------------------------------------
+Asegurate de contar con:
+1. Git
+2. Node.js (LTS v18 o superior)
+3. Microsoft SQL Server (2019 o 2022 Express/Developer)
+4. Herramientas de consulta SQL (SSMS o sqlcmd / mssql-tools)
+
+Puedes verificar o instalar todo mediante 'winget' ejecutando en PowerShell:
+
+# 1.1 Instalar Git (si no esta instalado):
+winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
+
+# 1.2 Instalar Node.js LTS:
+winget install --id OpenJS.NodeJS.LTS -e --source winget --accept-source-agreements --accept-package-agreements
+
+# 1.3 Instalar SQL Server 2022 Express:
+winget install --id Microsoft.SQLServer.2022.Express -e --source winget --accept-source-agreements --accept-package-agreements
+
+# 1.4 Instalar SQL Server Management Studio (SSMS) o sqlcmd:
+winget install --id Microsoft.SQLServerManagementStudio -e --source winget --accept-source-agreements --accept-package-agreements
+
+*IMPORTANTE TRAS INSTALAR: Reiniciar la terminal/PowerShell para refrescar las variables de entorno PATH.
+
+--------------------------------------------------------------------------------
+FASE 2: SERVICIO SQL SERVER Y AUTENTICACION
+--------------------------------------------------------------------------------
+1. Verifica que el servicio de SQL Server este en ejecucion:
+   Get-Service *sql*
+   (Debe aparecer 'MSSQLSERVER' o 'MSSQL$SQLEXPRESS' con Status: Running).
+   Si esta detenido: Start-Service MSSQLSERVER (o el nombre de la instancia instalada).
+
+2. Configuracion de acceso:
+   - Modo de autenticacion mixto (SQL Server and Windows Authentication mode).
+   - Habilitar el usuario 'sa' y asignarle una contrasena segura (ejemplo: 'Qwertyuiop000++').
+   - Asegurarse de que el protocolo TCP/IP este habilitado en SQL Server Configuration Manager (puerto 1433).
+
+--------------------------------------------------------------------------------
+FASE 3: CLONAR EL REPOSITORIO
+--------------------------------------------------------------------------------
+En la carpeta donde se desee ubicar el proyecto:
+git clone https://github.com/NicolasZapataCastilla/Tienda-El-Buen-Sabor.git
+cd Tienda-El-Buen-Sabor
+
+--------------------------------------------------------------------------------
+FASE 4: CREACION Y POBLADO DE LA BASE DE DATOS
+--------------------------------------------------------------------------------
+El archivo maestro 'TiendaElBuenSabor_Maestro.sql' crea la base de datos 'empresa',
+todas las tablas, relaciones, roles, usuarios y datos semilla.
+
+Opcion A (Recomendada con SSMS):
+1. Abre SQL Server Management Studio (SSMS) y conectate a tu servidor local.
+2. Abre el archivo 'TiendaElBuenSabor_Maestro.sql'.
+3. Ejecuta el script (F5).
+
+Opcion B (Por linea de comandos con sqlcmd):
+sqlcmd -S localhost -U sa -P "TuPasswordAqui" -i "TiendaElBuenSabor_Maestro.sql"
+(O con Windows Auth: sqlcmd -S localhost -E -i "TiendaElBuenSabor_Maestro.sql")
+
+--------------------------------------------------------------------------------
+FASE 5: CONFIGURACION DE VARIABLES DE ENTORNO DEL BACKEND
+--------------------------------------------------------------------------------
+1. Ubicate en la carpeta 'server/'.
+2. Crea el archivo '.env' copiando '.env.example':
+   Copy-Item server\.env.example server\.env
+
+3. Ajusta los valores de 'server\.env' con tus credenciales de SQL Server:
+   -------------------------------------------------
+   DB_SERVER=localhost
+   DB_DATABASE=empresa
+   DB_USER=sa
+   DB_PASSWORD=TuPasswordAqui
+   DB_PORT=1433
+   PORT=3000
+   -------------------------------------------------
+
+--------------------------------------------------------------------------------
+FASE 6: INSTALACION DE DEPENDENCIAS (NPM)
+--------------------------------------------------------------------------------
+Ejecuta desde la raiz del proyecto:
+
+# Instalar dependencias del Frontend (React + Vite)
+npm install
+
+# Instalar dependencias del Backend (Express + mssql)
+npm --prefix server install
+
+--------------------------------------------------------------------------------
+FASE 7: EJECUCION DE LOS SERVIDORES
+--------------------------------------------------------------------------------
+Debes mantener dos procesos en ejecucion (en terminales separadas o en segundo plano):
+
+TERMINAL 1 (Servidor Backend - API REST en puerto 3000):
+npm run server
+-> Mensaje de exito esperado:
+   "Server running on http://localhost:3000"
+   "Conectado a SQL Server (localhost) - Base de datos: empresa"
+
+TERMINAL 2 (Servidor Frontend - Vite en puerto 5173):
+npm run dev
+-> Mensaje de exito esperado:
+   "VITE v... ready"
+   "Local: http://localhost:5173/"
+
+--------------------------------------------------------------------------------
+FASE 8: VERIFICACION DE FUNCIONAMIENTO (SMOKE TEST)
+--------------------------------------------------------------------------------
+1. Prueba de API:
+   Abrir en el navegador o curl: http://localhost:3000/api/catalog
+   Debe devolver un JSON con catalogos de productos, clientes, etc.
+
+2. Acceso al Frontend:
+   Abrir en el navegador: http://localhost:5173/
+
+3. Credenciales de acceso para probar:
+   - Administrador:
+     Usuario: admin
+     Contrasena: admin123
+   - Ventas:
+     Usuario: r.quispe
+     Contrasena: pass123
+   - Compras:
+     Usuario: p.vargas
+     Contrasena: pass123
+   - Inventario:
+     Usuario: j.perez
+     Contrasena: pass123
+
+================================================================================
+FIN DE LAS INSTRUCCIONES
+================================================================================
